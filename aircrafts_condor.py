@@ -27,6 +27,8 @@ from aircraft_base import AircraftBase, effects
 import json
 import socket
 
+from utils import clamp
+
 #unit conversions (to m/s)
 knots = 0.514444
 kmh = 1.0/3.6
