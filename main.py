@@ -1061,7 +1061,7 @@ def main():
         il2.start()
 
     condor_mgr = CondorManager()
-    condor_port = utils.sanitize_dict(config["system"]).get("condor_telem_port", 12345)
+    condor_port = utils.sanitize_dict(config["system"]).get("condor_telem_port", 31090)
     condor = NetworkThread(telem_manager, host="", port=condor_port, telem_parser=condor_mgr)
     if utils.sanitize_dict(config["system"]).get("condor_enabled", None) or args.sim == "CONDOR":
         logging.info("Starting Condor 2 Telemetry Listener")

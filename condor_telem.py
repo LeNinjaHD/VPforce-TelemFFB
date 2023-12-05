@@ -3,9 +3,18 @@ class CondorManager:
     def __init__(self):
         self.telem_data = defaultdict(str)
 
-    def process_packet(self, data):
+    def process_packet(self, data: bytes) -> bytes:
+        ddata = data.decode('utf-8')
 
-        datadict = defaultdict(str, (x.split("=") for x in data.split("\n")))
+        lines = ddata.splitlines()
+
+        # Create a defaultdict
+        datadict = defaultdict(str)  # Assuming all values are floats
+
+        # Populate the defaultdict
+        for line in lines:
+            key, value = line.split('=')
+            datadict[key] = value
 
         self.telem_data['src'] = 'CONDOR' #add source telemetry so base aircraft module knows where it came from if neededj
         self.telem_data['N'] = "unknown_aircraft" #TelemFFB is wholey dependant on knowing the aircraft.. will be a problem having different effects for different aircraft if its not part of the telemetry stream
@@ -31,5 +40,6 @@ class CondorManager:
 if __name__ == '__main__':
     f = open("condor_data.txt", "r")
     data = f.read()
+    data = data.encode('utf-8')
     cd = CondorManager()
     print(cd.process_packet(data))
