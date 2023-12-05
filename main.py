@@ -38,7 +38,7 @@ parser.add_argument('-r', '--reset', help='Reset all FFB effects', action='store
 # Add config file argument, default config.ini
 parser.add_argument('-c', '--configfile', type=str, help='Config ini file (default config.ini)', default='config.ini')
 parser.add_argument('-o', '--overridefile', type=str, help='User config override file (default = config.user.ini', default='config.user.ini')
-parser.add_argument('-s', '--sim', type=str, help='Set simulator options DCS|MSFS|IL2 (default DCS', default="None")
+parser.add_argument('-s', '--sim', type=str, help='Set simulator options DCS|MSFS|IL2|CONDOR (default DCS', default="None")
 parser.add_argument('-t', '--type', help='FFB Device Type | joystick (default) | pedals | collective', default='joystick')
 
 args = parser.parse_args()
@@ -95,6 +95,7 @@ import threading
 import aircrafts_dcs
 import aircrafts_msfs
 import aircrafts_il2
+import aircrafts_condor
 import utils
 import subprocess
 
@@ -104,6 +105,7 @@ from configobj import ConfigObj
 
 from sc_manager import SimConnectManager
 from il2_telem import IL2Manager
+from condor_telem import CondorManager
 from aircraft_base import effects
 
 effects_translator = utils.EffectTranslator()
@@ -406,6 +408,8 @@ class TelemManager(QObject, threading.Thread):
             # 5 = Turboprop
         elif data_source == "IL2":
             module = aircrafts_il2
+        elif data_source == "CONDOR":
+            module = aircrafts_condor
         else:
             module = aircrafts_dcs
 
@@ -700,6 +704,7 @@ class MainWindow(QMainWindow):
         dcs_enabled = utils.sanitize_dict(cfg["system"]).get("dcs_enabled", False)
         msfs_enabled = utils.sanitize_dict(cfg["system"]).get("msfs_enabled", False)
         il2_enabled = utils.sanitize_dict(cfg["system"]).get("il2_enabled", False)
+        condor_enabled = utils.sanitize_dict(cfg["system"]).get("condor_enabled", False)
         if args.sim == "DCS" or dcs_enabled:
             dcs_enabled = 'True'
         else:
@@ -712,8 +717,14 @@ class MainWindow(QMainWindow):
             il2_enabled = 'True'
         else:
             il2_enabled = 'False'
-        simlabel = QLabel(f"Sims Enabled: DCS: {dcs_enabled} | MSFS: {msfs_enabled} | IL2: {il2_enabled}")
-        simlabel.setToolTip("Enable/Disable Sims in config file or use '-s DCS|MSFS' argument to specify")
+        if args.sim == "CONDOR" or condor_enabled:
+            condor_enabled = 'True'
+        else:
+            condor_enabled = 'False'
+
+
+        simlabel = QLabel(f"Sims Enabled: DCS: {dcs_enabled} | MSFS: {msfs_enabled} | IL2: {il2_enabled} | C2: {condor_enabled}")
+        simlabel.setToolTip("Enable/Disable Sims in config file or use '-s DCS|MSFS|IL2|CONDOR' argument to specify")
         layout.addWidget(simlabel)
         # Add a label and telemetry data label
         # layout.addWidget(QLabel("Telemetry"))
@@ -1049,6 +1060,14 @@ def main():
         logging.info("Starting IL2 Telemetry Listener")
         il2.start()
 
+    condor_mgr = CondorManager()
+    condor_port = utils.sanitize_dict(config["system"]).get("condor_telem_port", 12345)
+    condor = NetworkThread(telem_manager, host="", port=condor_port, telem_parser=condor_mgr)
+    if utils.sanitize_dict(config["system"]).get("condor_enabled", None) or args.sim == "CONDOR":
+        logging.info("Starting Condor 2 Telemetry Listener")
+        condor.start()
+
+
     sim_connect = SimConnectSock(telem_manager)
     try:
         msfs = utils.sanitize_dict(config["system"]).get("msfs_enabled", None)
@@ -1063,6 +1082,7 @@ def main():
         app.exec_()
     dcs.quit()
     il2.quit()
+    condor.quit()
     sim_connect.quit()
     telem_manager.quit()
 

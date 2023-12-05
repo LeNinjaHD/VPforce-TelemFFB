@@ -196,32 +196,33 @@ class Aircraft(AircraftBase):
         :type new_data: dict
         """
 
-        if telem_data["AircraftClass"] == "unknown":
-            telem_data["AircraftClass"] = "GenericAircraft"#inject aircraft class into telemetry
-        self._telem_data = telem_data
-        if telem_data.get("N") == None:
-            return
-        self._update_focus_loss(telem_data)
-        if self.deceleration_effect_enable:
-            self._decel_effect(telem_data)
-        if self.damage_effect_intensity > 0:
-            self._update_damage(telem_data)
-        if self.il2_shake_master:
-            if self.il2_enable_buffet:
-                self._update_buffeting(telem_data)
-            if self.runway_rumble_intensity > 0 and self.il2_enable_runway_rumble:
-                self._update_runway_rumble(telem_data)
-            if self.il2_enable_weapons:
-                self._update_cm_weapons(telem_data)
-        if self.speedbrake_motion_intensity > 0 or self.speedbrake_buffet_intensity > 0:
-            self._update_speed_brakes(telem_data.get("Speedbrakes"), telem_data.get("TAS"))
-        if self.gear_motion_intensity > 0:
-            self._update_landing_gear(telem_data.get("GearPos"), 0)
-        if self.flaps_motion_intensity > 0:
-            self._update_flaps(telem_data.get("Flaps"))
+        # if telem_data["AircraftClass"] == "unknown":
+        #     telem_data["AircraftClass"] = "GenericAircraft"#inject aircraft class into telemetry
+        # self._telem_data = telem_data
+        # if telem_data.get("N") == None:
+        #     return
+        # self._update_focus_loss(telem_data)
+        # if self.deceleration_effect_enable:
+        #     self._decel_effect(telem_data)
+        # if self.damage_effect_intensity > 0:
+        #     self._update_damage(telem_data)
+        # if self.il2_shake_master:
+        #     if self.il2_enable_buffet:
+        #         self._update_buffeting(telem_data)
+        #     if self.runway_rumble_intensity > 0 and self.il2_enable_runway_rumble:
+        #         self._update_runway_rumble(telem_data)
+        #     if self.il2_enable_weapons:
+        #         self._update_cm_weapons(telem_data)
+        # if self.speedbrake_motion_intensity > 0 or self.speedbrake_buffet_intensity > 0:
+        #     self._update_speed_brakes(telem_data.get("Speedbrakes"), telem_data.get("TAS"))
+        # if self.gear_motion_intensity > 0:
+        #     self._update_landing_gear(telem_data.get("GearPos"), 0)
+        # if self.flaps_motion_intensity > 0:
+        #     self._update_flaps(telem_data.get("Flaps"))
 
         # if self.spoiler_motion_intensity > 0 or self.spoiler_buffet_intensity > 0:
         #     self._update_spoiler(telem_data.get("Spoilers"), telem_data.get("TAS"))
+        pass
 
 
 
@@ -331,22 +332,23 @@ class GliderAircraft(Aircraft):
         self.force_trim_x_offset = self.stick_center[0]
         self.force_trim_y_offset = self.stick_center[1]
     def on_telemetry(self, telem_data):
-        if telem_data.get("N") == None:
-            return
-        telem_data["AircraftClass"] = "GliderAircraft"  # inject aircraft class into telemetry
-        if telem_data.get("STOP",0):
-            self.on_timeout()
-            return
-        super().on_telemetry(telem_data)
-        if self.force_trim_enabled:
-            self._update_force_trim(telem_data, x_axis=self.aileron_force_trim, y_axis=self.elevator_force_trim)
-        if self.spoiler_motion_intensity > 0 or self.spoiler_buffet_intensity > 0:
-            sp = max(telem_data.get("Spoilers", 0))
-            self._update_spoiler(sp, telem_data.get("TAS"), spd_thresh_low=60*kt2ms, spd_thresh_hi=120*kt2ms )
-        if self.gforce_effect_enable and self.gforce_effect_enable_areyoureallysure:
-            super()._gforce_effect(telem_data)
-        if self.engine_rumble or self._engine_rumble_is_playing: # if _engine_rumble_is_playing is true, check if we need to stop it
-            self._update_engine_rumble(telem_data.get("RPM", 0.0))
+        # if telem_data.get("N") == None:
+        #     return
+        # telem_data["AircraftClass"] = "GliderAircraft"  # inject aircraft class into telemetry
+        # if telem_data.get("STOP",0):
+        #     self.on_timeout()
+        #     return
+        # super().on_telemetry(telem_data)
+        # if self.force_trim_enabled:
+        #     self._update_force_trim(telem_data, x_axis=self.aileron_force_trim, y_axis=self.elevator_force_trim)
+        # if self.spoiler_motion_intensity > 0 or self.spoiler_buffet_intensity > 0:
+        #     sp = max(telem_data.get("Spoilers", 0))
+        #     self._update_spoiler(sp, telem_data.get("TAS"), spd_thresh_low=60*kt2ms, spd_thresh_hi=120*kt2ms )
+        # if self.gforce_effect_enable and self.gforce_effect_enable_areyoureallysure:
+        #     super()._gforce_effect(telem_data)
+        # if self.engine_rumble or self._engine_rumble_is_playing: # if _engine_rumble_is_playing is true, check if we need to stop it
+        #     self._update_engine_rumble(telem_data.get("RPM", 0.0))
+        pass
 
 class PropellerAircraft(Aircraft):
     """Generic Class for Prop/WW2 aircraft"""
@@ -359,18 +361,19 @@ class PropellerAircraft(Aircraft):
 
     # run on every telemetry frame
     def on_telemetry(self, telem_data):
-        ## Propeller Aircraft Telemetry Handler
-        if telem_data.get("N") == None:
-            return
-        telem_data["AircraftClass"] = "PropellerAircraft"   #inject aircraft class into telemetry
-
-        super().on_telemetry(telem_data)
-
-        if self.engine_rumble or self._engine_rumble_is_playing: # if _engine_rumble_is_playing is true, check if we need to stop it
-            self._update_engine_rumble(telem_data.get("RPM", 0.0))
-        if self.is_joystick():
-            self.override_elevator_droop(telem_data)
-        if self.gforce_effect_enable:
-            self._gforce_effect(telem_data)
+        # ## Propeller Aircraft Telemetry Handler
+        # if telem_data.get("N") == None:
+        #     return
+        # telem_data["AircraftClass"] = "PropellerAircraft"   #inject aircraft class into telemetry
+        #
+        # super().on_telemetry(telem_data)
+        #
+        # if self.engine_rumble or self._engine_rumble_is_playing: # if _engine_rumble_is_playing is true, check if we need to stop it
+        #     self._update_engine_rumble(telem_data.get("RPM", 0.0))
+        # if self.is_joystick():
+        #     self.override_elevator_droop(telem_data)
+        # if self.gforce_effect_enable:
+        #     self._gforce_effect(telem_data)
+        pass
 
 
